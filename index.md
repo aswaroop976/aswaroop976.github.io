@@ -7,7 +7,7 @@ Hello! I’m Arpan Swaroop This is my personal website.
 I love programming, and I specialize in [Your Skills].
 
 ## Projects
-[Projects](projects.md)
+[Chip8 interpreter on the STM32F411](chip8_microcontroller_port.md)
 
 - [Project 1](https://github.com/your-username/project1)
 - [Project 2](https://github.com/your-username/project2)
