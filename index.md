@@ -1,6 +1,6 @@
 # Welcome to My Personal Website
 
-Hello! I’m [Your Name]. This is my personal website.
+Hello! I’m Arpan Swaroop This is my personal website.
 
 ## About Me
 
