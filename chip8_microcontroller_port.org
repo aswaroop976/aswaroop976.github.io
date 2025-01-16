@@ -6,3 +6,20 @@
 - Additionally this post assumes pre-requisite knowledge of Rust(nothing too complex), and a basic understanding of computer architecture and embedded systems(although I will try to make this as beginner friendly as possible, linking to helpful resources whereever I can)
 ** Backend(CHIP-8 emulator)
 - This part of the project was largely inspired from this blog post(seriously this post probably explains things way better than I ever can): [[https://austinmorlan.com/posts/chip8_emulator/]]
+- First I defined a Chip8 struct where I store the state of the emulator at any point in time:
+  #+BEGIN_SRC Rust
+pub struct Chip8 {
+    pub memory: [u8; MEMORY_SIZE],       // 4kb memory
+    pub registers: [u8; REGISTER_COUNT], // 16 general purpose registers
+    pub index_register: u16,
+    pub program_counter: u16,
+    pub screen: [u8; SCREEN_WIDTH * SCREEN_HEIGHT], // 64x32 pixel display
+    pub delay_timer: u8,
+    pub sound_timer: u8,
+    pub stack: [u16; STACK_SIZE], // stack with 16 levels
+    pub stack_pointer: u8,        // stack pointer
+    pub keys: [u8; REGISTER_COUNT],
+    pub jump_table: [OpcodeHandler; 16],
+}
+
+  #+END_SRC
