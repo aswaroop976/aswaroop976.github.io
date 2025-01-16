@@ -1,13 +1,24 @@
 
 # Table of Contents
 
-1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#orgb103e65)
+1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#orge3f9d7c)
+    1.  [Backend(CHIP-8 emulator)](#org93798a5)
 
-  * [ ] 
 
-<a id="orgb103e65"></a>
+
+<a id="orge3f9d7c"></a>
 
 # CHIP-8 emulator in Rust ported to the STM32f411 microcontroller
 
--   
+-   This project was inspired by this blog post: <https://dhole.github.io/post/chip8_emu_2/>
+-   Here I will explain how I wrote a CHIP-8 emulator and ported it to an embedded ARM microcontroller, if you are curious about all the code here is the repository linked(ignore the name of the repository): <https://github.com/aswaroop976/ssd1306_test>
+-   I will split this post into two parts first talking about the backend, which consists of the CHIP-8 emulator, and then the frontend, which is where I will explain how I ported this emulator to a micrcontroller and interfaced with a display and buttons
+-   Additionally this post assumes pre-requisite knowledge of Rust(nothing too complex), and a basic understanding of computer architecture and embedded systems(although I will try to make this as beginner friendly as possible, linking to helpful resources whereever I can)
+
+
+<a id="org93798a5"></a>
+
+## Backend(CHIP-8 emulator)
+
+-   This part of the project was largely inspired from this blog post(seriously this post probably explains things way better than I ever can): <https://austinmorlan.com/posts/chip8_emulator/>
 
