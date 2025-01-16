@@ -93,3 +93,13 @@ pub struct Chip8 {
   #+END_SRC
 
 - After loading the ROM into the Chip8's memory(I will expand more on how I do this in my frontend section), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
+** Frontend(Microcontroller port)
+*** Hardware
+**** STM32F411
+[[/black_pill.jpg]]
+- I chose the STM32F411, successor to the popular "blue-pill" STM32 micrcontroller, because of it's robust Rust support and powerful internals(for a microcontroller)
+- The specs include:
+  1. 512 Kb of flash memory, 128 Kb of SRAM
+  2. 32 bit ARM Cortex-M4 CPU that can be clocked up to 100Mhz
+  3. Many peripherals
+****

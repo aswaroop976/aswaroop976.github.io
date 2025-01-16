@@ -1,15 +1,17 @@
 
 # Table of Contents
 
-1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#org99bc02d)
-    1.  [Backend(CHIP-8 emulator)](#orgebb8609)
-        1.  [Chip8 struct](#org840a317)
-        2.  [Opcodes](#org7a059f4)
-        3.  [Emulation cycle](#org6b60431)
+1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#org73f4c5c)
+    1.  [Backend(CHIP-8 emulator)](#org4b867ef)
+        1.  [Chip8 struct](#orgd5a1bcb)
+        2.  [Opcodes](#orgbb3395c)
+        3.  [Emulation cycle](#orgebf9881)
+    2.  [Frontend(Microcontroller port)](#org90567d3)
+        1.  [Hardware](#orgbf9cfdd)
 
 
 
-<a id="org99bc02d"></a>
+<a id="org73f4c5c"></a>
 
 # CHIP-8 emulator in Rust ported to the STM32f411 microcontroller
 
@@ -19,14 +21,14 @@
 -   Additionally this post assumes pre-requisite knowledge of Rust(nothing too complex), and a basic understanding of computer architecture and embedded systems(although I will try to make this as beginner friendly as possible, linking to helpful resources whereever I can)
 
 
-<a id="orgebb8609"></a>
+<a id="org4b867ef"></a>
 
 ## Backend(CHIP-8 emulator)
 
 -   This part of the project was largely inspired from this blog post(seriously this post probably explains things way better than I ever can): <https://austinmorlan.com/posts/chip8_emulator/>
 
 
-<a id="org840a317"></a>
+<a id="orgd5a1bcb"></a>
 
 ### Chip8 struct
 
@@ -55,7 +57,7 @@
     -   jump table: This is where we will process opcodes and use function pointers to jump to appropriate opcode handler fuction for every instruction that we read from ROM files
 
 
-<a id="org7a059f4"></a>
+<a id="orgbb3395c"></a>
 
 ### Opcodes
 
@@ -96,7 +98,7 @@
     -   In this instruction I have to modify the screen field by drawing a sprite at the specified location, this is the main way that CHIP-8 programs interact with the display
 
 
-<a id="org6b60431"></a>
+<a id="orgebf9881"></a>
 
 ### Emulation cycle
 
@@ -124,4 +126,26 @@
         }
 
 -   After loading the ROM into the Chip8&rsquo;s memory(I will expand more on how I do this in my frontend section), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
+
+
+<a id="org90567d3"></a>
+
+## Frontend(Microcontroller port)
+
+
+<a id="orgbf9cfdd"></a>
+
+### Hardware
+
+1.  STM32F411
+
+    ![img](/black_pill.jpg)
+    
+    -   I chose the STM32F411, successor to the popular &ldquo;blue-pill&rdquo; STM32 micrcontroller, because of it&rsquo;s robust Rust support and powerful internals(for a microcontroller)
+    -   The specs include:
+        1.  512 Kb of flash memory, 128 Kb of SRAM
+        2.  32 bit ARM Cortex-M4 CPU that can be clocked up to 100Mhz
+        3.  Many peripherals
+    
+    **\*\***
 
