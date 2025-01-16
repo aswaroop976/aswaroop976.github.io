@@ -67,4 +67,4 @@ pub struct Chip8 {
 
   #+END_SRC
   - In this instruction I have to modify the screen field by drawing a sprite at the specified location, this is the main way that CHIP-8 programs interact with the display
-*** hello
+*** Emulation cycle
