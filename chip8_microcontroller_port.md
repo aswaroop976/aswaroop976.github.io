@@ -1,15 +1,15 @@
 
 # Table of Contents
 
-1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#org94201a5)
-    1.  [Backend(CHIP-8 emulator)](#org58e78fc)
-        1.  [Chip8 struct](#org87dc63f)
-        2.  [Opcodes](#org12af38b)
-        3.  [Emulation cycle](#orge5b003f)
+1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#org99bc02d)
+    1.  [Backend(CHIP-8 emulator)](#orgebb8609)
+        1.  [Chip8 struct](#org840a317)
+        2.  [Opcodes](#org7a059f4)
+        3.  [Emulation cycle](#org6b60431)
 
 
 
-<a id="org94201a5"></a>
+<a id="org99bc02d"></a>
 
 # CHIP-8 emulator in Rust ported to the STM32f411 microcontroller
 
@@ -19,14 +19,14 @@
 -   Additionally this post assumes pre-requisite knowledge of Rust(nothing too complex), and a basic understanding of computer architecture and embedded systems(although I will try to make this as beginner friendly as possible, linking to helpful resources whereever I can)
 
 
-<a id="org58e78fc"></a>
+<a id="orgebb8609"></a>
 
 ## Backend(CHIP-8 emulator)
 
 -   This part of the project was largely inspired from this blog post(seriously this post probably explains things way better than I ever can): <https://austinmorlan.com/posts/chip8_emulator/>
 
 
-<a id="org87dc63f"></a>
+<a id="org840a317"></a>
 
 ### Chip8 struct
 
@@ -48,14 +48,14 @@
 
 1.  Important fields
 
-    -   return<sub>stack</sub>: This essentially serves as the return address stack. A stack depth of 16 limits the number or recursive function calls to 16. The stack<sub>pointer</sub> field points to the top of the return address stack.
+    -   return stack: This essentially serves as the return address stack. A stack depth of 16 limits the number or recursive function calls to 16. The stack pointer field points to the top of the return address stack.
     -   memory: the CHIP-8 contains a 4kb memory address space, which requires 16 bits to fully address. However the general purpose registers are only 8 bits wide, to account for this there is a special 16 bit index register. The index register is used specifically to store memory addresses
     -   screen: This represents a seperate memory buffer to drive the 64x32 CHIP-8 display. The display is monochrome(black and white), so the pixel values are either 1(on), or 0(off).
     -   keys: CHIP-8 has 16 input keys, the first 16 hexadecimal values: 0 through F, each key is pressed or not
-    -   jump<sub>table</sub>: This is where we will process opcodes and use function pointers to jump to appropriate opcode handler fuction for every instruction that we read from ROM files
+    -   jump table: This is where we will process opcodes and use function pointers to jump to appropriate opcode handler fuction for every instruction that we read from ROM files
 
 
-<a id="org12af38b"></a>
+<a id="org7a059f4"></a>
 
 ### Opcodes
 
@@ -96,7 +96,32 @@
     -   In this instruction I have to modify the screen field by drawing a sprite at the specified location, this is the main way that CHIP-8 programs interact with the display
 
 
-<a id="orge5b003f"></a>
+<a id="org6b60431"></a>
 
 ### Emulation cycle
+
+-   Here I present my emulate cycle function where I perform the fetch/decode/execute stages of the CHIP-8 emulator(My opcode handlers deal with memory instructions, as well as writing to registers). The fetch opcode instruction is a helper function to fetch instructions
+    
+        pub fn fetch_opcode(&self) -> u16 {
+            let high_byte = self.memory[self.program_counter as usize] as u16;
+            let low_byte = self.memory[(self.program_counter + 1) as usize] as u16;
+            (high_byte << 8) | low_byte
+        }
+        
+        pub fn emulate_cycle(&mut self) {
+            let opcode = self.fetch_opcode();
+            self.program_counter += 2;
+            let index = (opcode & 0xF000) >> 12;
+            let handler = self.jump_table[index as usize];
+            handler(self, opcode);
+        
+            if self.delay_timer > 0 {
+                self.delay_timer -= 1;
+            }
+            if self.sound_timer > 0 {
+                self.sound_timer -= 1;
+            }
+        }
+
+-   After loading the ROM into the Chip8&rsquo;s memory(I will expand more on how I do this in my frontend section), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
 
