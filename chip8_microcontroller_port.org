@@ -102,4 +102,13 @@ pub struct Chip8 {
   1. 512 Kb of flash memory, 128 Kb of SRAM
   2. 32 bit ARM Cortex-M4 CPU that can be clocked up to 100Mhz
   3. Many peripherals
-****
+**** SSD1306 display
+[[/ssd1306.jpg]]
+- I chose this display because of its cheap price and robust Rust support
+*** Software
+- This was a learning experience with using Rust for an embedded system, as such I will document the libraries/crates I used, as well discoveries I made about writing bare-metal Rust
+**** Crates used
+- stm32f4xx_hal: This is the main crate I used to interact with the stm32f411, as it is a multi-device hardware abstraction layer for all STM32F4 series microcontrollers. This crate provided an API to interface with the peripherals on the microcontroller, such as the GPIO pins, timers, clock, SPI, etc.
+- cortex_m_rt: This crate contains all the required parts to build an application containing no standard library, that targets a Cortex-M microcontroller. I used it to define an entry point of the program(the main function)
+- ssd1306: This crate provided a driver interface with the ssd1306 display, it supports both I2C and SPI. I used I2C for this project
+- embedded-graphics: This crate is a 2D graphics library for memory constrained embedded devices. I used this crate(alongside the ssd1306 crate) as a helpful abstraction to draw individual points on the screen

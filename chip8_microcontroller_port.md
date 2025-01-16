@@ -1,17 +1,18 @@
 
 # Table of Contents
 
-1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#org73f4c5c)
-    1.  [Backend(CHIP-8 emulator)](#org4b867ef)
-        1.  [Chip8 struct](#orgd5a1bcb)
-        2.  [Opcodes](#orgbb3395c)
-        3.  [Emulation cycle](#orgebf9881)
-    2.  [Frontend(Microcontroller port)](#org90567d3)
-        1.  [Hardware](#orgbf9cfdd)
+1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#org873d490)
+    1.  [Backend(CHIP-8 emulator)](#orgf49b2de)
+        1.  [Chip8 struct](#org5437307)
+        2.  [Opcodes](#org8e1b379)
+        3.  [Emulation cycle](#org88d995e)
+    2.  [Frontend(Microcontroller port)](#orge5cffa5)
+        1.  [Hardware](#orge2a7d67)
+        2.  [Software](#orgaec35fa)
 
 
 
-<a id="org73f4c5c"></a>
+<a id="org873d490"></a>
 
 # CHIP-8 emulator in Rust ported to the STM32f411 microcontroller
 
@@ -21,14 +22,14 @@
 -   Additionally this post assumes pre-requisite knowledge of Rust(nothing too complex), and a basic understanding of computer architecture and embedded systems(although I will try to make this as beginner friendly as possible, linking to helpful resources whereever I can)
 
 
-<a id="org4b867ef"></a>
+<a id="orgf49b2de"></a>
 
 ## Backend(CHIP-8 emulator)
 
 -   This part of the project was largely inspired from this blog post(seriously this post probably explains things way better than I ever can): <https://austinmorlan.com/posts/chip8_emulator/>
 
 
-<a id="orgd5a1bcb"></a>
+<a id="org5437307"></a>
 
 ### Chip8 struct
 
@@ -57,7 +58,7 @@
     -   jump table: This is where we will process opcodes and use function pointers to jump to appropriate opcode handler fuction for every instruction that we read from ROM files
 
 
-<a id="orgbb3395c"></a>
+<a id="org8e1b379"></a>
 
 ### Opcodes
 
@@ -98,7 +99,7 @@
     -   In this instruction I have to modify the screen field by drawing a sprite at the specified location, this is the main way that CHIP-8 programs interact with the display
 
 
-<a id="orgebf9881"></a>
+<a id="org88d995e"></a>
 
 ### Emulation cycle
 
@@ -128,12 +129,12 @@
 -   After loading the ROM into the Chip8&rsquo;s memory(I will expand more on how I do this in my frontend section), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
 
 
-<a id="org90567d3"></a>
+<a id="orge5cffa5"></a>
 
 ## Frontend(Microcontroller port)
 
 
-<a id="orgbf9cfdd"></a>
+<a id="orge2a7d67"></a>
 
 ### Hardware
 
@@ -146,6 +147,24 @@
         1.  512 Kb of flash memory, 128 Kb of SRAM
         2.  32 bit ARM Cortex-M4 CPU that can be clocked up to 100Mhz
         3.  Many peripherals
+
+2.  SSD1306 display
+
+    ![img](/ssd1306.jpg)
     
-    **\*\***
+    -   I chose this display because of its cheap price and robust Rust support
+
+
+<a id="orgaec35fa"></a>
+
+### Software
+
+-   This was a learning experience with using Rust for an embedded system, as such I will document the libraries/crates I used, as well discoveries I made about writing bare-metal Rust
+
+1.  Crates used
+
+    -   stm32f4xx<sub>hal</sub>: This is the main crate I used to interact with the stm32f411, as it is a multi-device hardware abstraction layer for all STM32F4 series microcontrollers. This crate provided an API to interface with the peripherals on the microcontroller, such as the GPIO pins, timers, clock, SPI, etc.
+    -   cortex<sub>m</sub><sub>rt</sub>: This crate contains all the required parts to build an application containing no standard library, that targets a Cortex-M microcontroller. I used it to define an entry point of the program(the main function)
+    -   ssd1306: This crate provided a driver interface with the ssd1306 display, it supports both I2C and SPI. I used I2C for this project
+    -   embedded-graphics: This crate is a 2D graphics library for memory constrained embedded devices. I used this crate(alongside the ssd1306 crate) as a helpful abstraction to draw individual points on the screen
 
