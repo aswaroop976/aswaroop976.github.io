@@ -1,18 +1,18 @@
 
 # Table of Contents
 
-1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#org873d490)
-    1.  [Backend(CHIP-8 emulator)](#orgf49b2de)
-        1.  [Chip8 struct](#org5437307)
-        2.  [Opcodes](#org8e1b379)
-        3.  [Emulation cycle](#org88d995e)
-    2.  [Frontend(Microcontroller port)](#orge5cffa5)
-        1.  [Hardware](#orge2a7d67)
-        2.  [Software](#orgaec35fa)
+1.  [CHIP-8 emulator in Rust ported to the STM32f411 microcontroller](#orgd96146c)
+    1.  [Backend(CHIP-8 emulator)](#orgc07405e)
+        1.  [Chip8 struct](#org552e0a7)
+        2.  [Opcodes](#org41a8dbe)
+        3.  [Emulation cycle](#org2caf71a)
+    2.  [Frontend(Microcontroller port)](#orgc73ffeb)
+        1.  [Hardware](#org7a96427)
+        2.  [Software](#orgab6d1b5)
 
 
 
-<a id="org873d490"></a>
+<a id="orgd96146c"></a>
 
 # CHIP-8 emulator in Rust ported to the STM32f411 microcontroller
 
@@ -22,14 +22,14 @@
 -   Additionally this post assumes pre-requisite knowledge of Rust(nothing too complex), and a basic understanding of computer architecture and embedded systems(although I will try to make this as beginner friendly as possible, linking to helpful resources whereever I can)
 
 
-<a id="orgf49b2de"></a>
+<a id="orgc07405e"></a>
 
 ## Backend(CHIP-8 emulator)
 
 -   This part of the project was largely inspired from this blog post(seriously this post probably explains things way better than I ever can): <https://austinmorlan.com/posts/chip8_emulator/>
 
 
-<a id="org5437307"></a>
+<a id="org552e0a7"></a>
 
 ### Chip8 struct
 
@@ -58,7 +58,7 @@
     -   jump table: This is where we will process opcodes and use function pointers to jump to appropriate opcode handler fuction for every instruction that we read from ROM files
 
 
-<a id="org8e1b379"></a>
+<a id="org41a8dbe"></a>
 
 ### Opcodes
 
@@ -99,7 +99,7 @@
     -   In this instruction I have to modify the screen field by drawing a sprite at the specified location, this is the main way that CHIP-8 programs interact with the display
 
 
-<a id="org88d995e"></a>
+<a id="org2caf71a"></a>
 
 ### Emulation cycle
 
@@ -126,15 +126,22 @@
             }
         }
 
--   After loading the ROM into the Chip8&rsquo;s memory(I will expand more on how I do this in my frontend section), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
+-   After loading the ROM into the Chip8&rsquo;s memory(expanded on below), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
+-   Below I show the load program function which is how I load a buffer containing the ROM instructions into the chip8&rsquo;s memory(instructions from the ROM shoud be stored in the range 0x200 to 0xFFF in the chip8 memory):
+    
+        pub fn load_program(&mut self, program: &[u8]) {
+            for (i, &byte) in program.iter().enumerate() {
+                self.memory[0x200 + i] = byte;
+            }
+        }
 
 
-<a id="orge5cffa5"></a>
+<a id="orgc73ffeb"></a>
 
 ## Frontend(Microcontroller port)
 
 
-<a id="orge2a7d67"></a>
+<a id="org7a96427"></a>
 
 ### Hardware
 
@@ -155,7 +162,7 @@
     -   I chose this display because of its cheap price and robust Rust support
 
 
-<a id="orgaec35fa"></a>
+<a id="orgab6d1b5"></a>
 
 ### Software
 
@@ -163,8 +170,72 @@
 
 1.  Crates used
 
-    -   stm32f4xx<sub>hal</sub>: This is the main crate I used to interact with the stm32f411, as it is a multi-device hardware abstraction layer for all STM32F4 series microcontrollers. This crate provided an API to interface with the peripherals on the microcontroller, such as the GPIO pins, timers, clock, SPI, etc.
-    -   cortex<sub>m</sub><sub>rt</sub>: This crate contains all the required parts to build an application containing no standard library, that targets a Cortex-M microcontroller. I used it to define an entry point of the program(the main function)
+    -   stm32f4xx-hal: This is the main crate I used to interact with the stm32f411, as it is a multi-device hardware abstraction layer for all STM32F4 series microcontrollers. This crate provided an API to interface with the peripherals on the microcontroller, such as the GPIO pins, timers, clock, SPI, etc.
+    -   cortex-m-rt: This crate contains all the required parts to build an application containing no standard library, that targets a Cortex-M microcontroller. I used it to define an entry point of the program(the main function)
     -   ssd1306: This crate provided a driver interface with the ssd1306 display, it supports both I2C and SPI. I used I2C for this project
     -   embedded-graphics: This crate is a 2D graphics library for memory constrained embedded devices. I used this crate(alongside the ssd1306 crate) as a helpful abstraction to draw individual points on the screen
+
+2.  Code overview
+
+    -   This is how I setup the clock, GPIO pins, and the display initially in the main function:
+        
+            fn main() -> ! {
+                rtt_init_print!();
+                let dp = pac::Peripherals::take().unwrap();
+                // Set up the system clock.
+                let rcc = dp.RCC.constrain();
+                let clocks = rcc.cfgr.sysclk(100.MHz()).freeze();
+            
+                // Set up I2C - SCL is PB6 and SDA is PB7; they are set to Alternate Function 4
+                let gpiob = dp.GPIOB.split();
+                let scl = gpiob.pb6.internal_pull_up(true);
+                let sda = gpiob.pb7.internal_pull_up(true);
+                // Configure PB0 as an output pin (connected to one side of the button)
+                let mut output_pin: PB0<Output<PushPull>> = gpiob.pb0.into_push_pull_output();
+                // Configure PB1 as an input pin as pull down input
+                let input_pin: PB1<Input> = gpiob.pb1.into_pull_down_input();
+            
+                output_pin.set_high();
+                let i2c = dp.I2C1.i2c((scl, sda), 400.kHz(), &clocks);
+            
+                // Set up the display
+                let interface = I2CDisplayInterface::new(i2c);
+                let mut disp = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
+                    .into_buffered_graphics_mode();
+                disp.init().unwrap();
+                disp.flush().unwrap();
+            
+                let mut chip8 = Chip8::new();
+            
+                // Load ROM ================================================================
+                const CHIP8_ROM: &[u8] = include_bytes!("../Chip8 Picture.ch8");
+                // Load the program into the CHIP-8 emulator
+                chip8.load_program(&CHIP8_ROM);
+        
+        -   I set the clock frequency to about 100Mhz here, and use pins pb6 and pb7 to drive the I2C output. pb6 serves as the serial clock line(SCL) and pb7 serves as serial data line(SDA).
+        -   The I2C speed mode I set the pins to is Fast mode considering I am driving the I2C display at 400kHZ(the max rate for this microcontroller). This means the transmission speed is approximately 400kbps
+            -   Using the ssd1306 crate I am able to setup my display, using the I2C interface I setup earlier
+        -   I am currently using a singular button(even though CHIP-8 has 16 buttons, I didn&rsquo;t have enough wires to connect all 16 buttons😭)
+            -   Here pressing the button closes a circuit between pin pb0 and pb1, where pin pb0 is outputting a voltage(3.3v). Therefore whenever pin pb0(set to be a pull-down input) detects a voltage, we detect a button press. Very useful if I had more wires however to connect all 16 buttons on my makeshift keypad.
+        -   I took .ch8 binaries that I found online, and using include bytes was able to write the instructions into a buffer, which I then load into the chip8&rsquo;s memory using the load program function(more info on this on the chip8 section)
+        -   Below I present the main loop that runs after the system is setup and initialized:
+            
+                loop {
+                    // Emulate cycle:
+                    chip8.emulate_cycle();
+                    // Draw logic here =====================================================
+                    disp.flush().unwrap();
+                    for (i, &pixel) in chip8.screen.iter().enumerate() {
+                        if pixel == 1 {
+                            let x = 32 + ((i % SCREEN_WIDTH) as i32);
+                            let y = 17 + (i / SCREEN_WIDTH) as i32;
+                            Pixel(Point::new(x, y), BinaryColor::On)
+                                .draw(&mut disp)
+                                .unwrap();
+                        }
+                    }
+                }
+            
+            -   Here I emulate the chip8 clock cycle by calling the emulate cycle and draw to the display
+            -   To draw to the screen I iterate through the screen buffer in the chip8 struct and using the embedded-graphics crate turn each pixel on the ssd1306 on/off based on the value in the screen buffer.
 

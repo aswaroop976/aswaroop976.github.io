@@ -92,7 +92,15 @@ pub struct Chip8 {
     }
   #+END_SRC
 
-- After loading the ROM into the Chip8's memory(I will expand more on how I do this in my frontend section), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
+- After loading the ROM into the Chip8's memory(expanded on below), I fetch the current instruction using the program counter(this points to the instruction to be fetched). Then I increment the program counter to point to the next instruction to be fetched(for control/branch instructions the opcode handler will set the program counter accordingly). Then using the opcode from the instruction fetched I can get the relevant opcode handler from the jump table.
+- Below I show the load program function which is how I load a buffer containing the ROM instructions into the chip8's memory(instructions from the ROM shoud be stored in the range 0x200 to 0xFFF in the chip8 memory):
+  #+BEGIN_SRC Rust
+    pub fn load_program(&mut self, program: &[u8]) {
+        for (i, &byte) in program.iter().enumerate() {
+            self.memory[0x200 + i] = byte;
+        }
+    }
+  #+END_SRC
 ** Frontend(Microcontroller port)
 *** Hardware
 **** STM32F411
@@ -108,7 +116,69 @@ pub struct Chip8 {
 *** Software
 - This was a learning experience with using Rust for an embedded system, as such I will document the libraries/crates I used, as well discoveries I made about writing bare-metal Rust
 **** Crates used
-- stm32f4xx_hal: This is the main crate I used to interact with the stm32f411, as it is a multi-device hardware abstraction layer for all STM32F4 series microcontrollers. This crate provided an API to interface with the peripherals on the microcontroller, such as the GPIO pins, timers, clock, SPI, etc.
-- cortex_m_rt: This crate contains all the required parts to build an application containing no standard library, that targets a Cortex-M microcontroller. I used it to define an entry point of the program(the main function)
+- stm32f4xx-hal: This is the main crate I used to interact with the stm32f411, as it is a multi-device hardware abstraction layer for all STM32F4 series microcontrollers. This crate provided an API to interface with the peripherals on the microcontroller, such as the GPIO pins, timers, clock, SPI, etc.
+- cortex-m-rt: This crate contains all the required parts to build an application containing no standard library, that targets a Cortex-M microcontroller. I used it to define an entry point of the program(the main function)
 - ssd1306: This crate provided a driver interface with the ssd1306 display, it supports both I2C and SPI. I used I2C for this project
 - embedded-graphics: This crate is a 2D graphics library for memory constrained embedded devices. I used this crate(alongside the ssd1306 crate) as a helpful abstraction to draw individual points on the screen
+**** Code overview
+- This is how I setup the clock, GPIO pins, and the display initially in the main function:
+  #+BEGIN_SRC Rust
+fn main() -> ! {
+    rtt_init_print!();
+    let dp = pac::Peripherals::take().unwrap();
+    // Set up the system clock.
+    let rcc = dp.RCC.constrain();
+    let clocks = rcc.cfgr.sysclk(100.MHz()).freeze();
+
+    // Set up I2C - SCL is PB6 and SDA is PB7; they are set to Alternate Function 4
+    let gpiob = dp.GPIOB.split();
+    let scl = gpiob.pb6.internal_pull_up(true);
+    let sda = gpiob.pb7.internal_pull_up(true);
+    // Configure PB0 as an output pin (connected to one side of the button)
+    let mut output_pin: PB0<Output<PushPull>> = gpiob.pb0.into_push_pull_output();
+    // Configure PB1 as an input pin as pull down input
+    let input_pin: PB1<Input> = gpiob.pb1.into_pull_down_input();
+
+    output_pin.set_high();
+    let i2c = dp.I2C1.i2c((scl, sda), 400.kHz(), &clocks);
+
+    // Set up the display
+    let interface = I2CDisplayInterface::new(i2c);
+    let mut disp = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
+        .into_buffered_graphics_mode();
+    disp.init().unwrap();
+    disp.flush().unwrap();
+
+    let mut chip8 = Chip8::new();
+
+    // Load ROM ================================================================
+    const CHIP8_ROM: &[u8] = include_bytes!("../Chip8 Picture.ch8");
+    // Load the program into the CHIP-8 emulator
+    chip8.load_program(&CHIP8_ROM);
+  #+END_SRC
+  - I set the clock frequency to about 100Mhz here, and use pins pb6 and pb7 to drive the I2C output. pb6 serves as the serial clock line(SCL) and pb7 serves as serial data line(SDA).
+  - The I2C speed mode I set the pins to is Fast mode considering I am driving the I2C display at 400kHZ(the max rate for this microcontroller). This means the transmission speed is approximately 400kbps
+    - Using the ssd1306 crate I am able to setup my display, using the I2C interface I setup earlier
+  - I am currently using a singular button(even though CHIP-8 has 16 buttons, I didn't have enough wires to connect all 16 buttons😭)
+    - Here pressing the button closes a circuit between pin pb0 and pb1, where pin pb0 is outputting a voltage(3.3v). Therefore whenever pin pb0(set to be a pull-down input) detects a voltage, we detect a button press. Very useful if I had more wires however to connect all 16 buttons on my makeshift keypad.
+  - I took .ch8 binaries that I found online, and using include bytes was able to write the instructions into a buffer, which I then load into the chip8's memory using the load program function(more info on this on the chip8 section)
+  - Below I present the main loop that runs after the system is setup and initialized:
+   #+BEGIN_SRC Rust
+    loop {
+        // Emulate cycle:
+        chip8.emulate_cycle();
+        // Draw logic here =====================================================
+        disp.flush().unwrap();
+        for (i, &pixel) in chip8.screen.iter().enumerate() {
+            if pixel == 1 {
+                let x = 32 + ((i % SCREEN_WIDTH) as i32);
+                let y = 17 + (i / SCREEN_WIDTH) as i32;
+                Pixel(Point::new(x, y), BinaryColor::On)
+                    .draw(&mut disp)
+                    .unwrap();
+            }
+        }
+    }
+   #+END_SRC
+    - Here I emulate the chip8 clock cycle by calling the emulate cycle and draw to the display
+    - To draw to the screen I iterate through the screen buffer in the chip8 struct and using the embedded-graphics crate turn each pixel on the ssd1306 on/off based on the value in the screen buffer.
