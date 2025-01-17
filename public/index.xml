@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>My New Hugo Site</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content on My New Hugo Site</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 17 Jan 2025 14:32:57 -0600</lastBuildDate>
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>My First Post</title>
+      <link>http://localhost:1313/posts/my-first-post/</link>
+      <pubDate>Fri, 17 Jan 2025 14:32:57 -0600</pubDate>
+      <guid>http://localhost:1313/posts/my-first-post/</guid>
+      <description>&lt;h1 id=&#34;table-of-contents&#34;&gt;Table of Contents&lt;/h1&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#orgd96146c&#34;&gt;CHIP-8 emulator in Rust ported to the STM32f411 microcontroller&lt;/a&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#orgc07405e&#34;&gt;Backend(CHIP-8 emulator)&lt;/a&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#org552e0a7&#34;&gt;Chip8 struct&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#org41a8dbe&#34;&gt;Opcodes&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#org2caf71a&#34;&gt;Emulation cycle&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#orgc73ffeb&#34;&gt;Frontend(Microcontroller port)&lt;/a&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#org7a96427&#34;&gt;Hardware&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#orgab6d1b5&#34;&gt;Software&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;&#xA;&lt;h1 id=&#34;chip-8-emulator-in-rust-ported-to-the-stm32f411-microcontroller&#34;&gt;CHIP-8 emulator in Rust ported to the STM32f411 microcontroller&lt;/h1&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;This project was inspired by this blog post: &lt;a href=&#34;https://dhole.github.io/post/chip8_emu_2/&#34;&gt;https://dhole.github.io/post/chip8_emu_2/&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;Here I will explain how I wrote a CHIP-8 emulator and ported it to an embedded ARM microcontroller, if you are curious about all the code here is the repository linked(ignore the name of the repository): &lt;a href=&#34;https://github.com/aswaroop976/ssd1306_test&#34;&gt;https://github.com/aswaroop976/ssd1306_test&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;I will split this post into two parts first talking about the backend, which consists of the CHIP-8 emulator, and then the frontend, which is where I will explain how I ported this emulator to a micrcontroller and interfaced with a display and buttons&lt;/li&gt;&#xA;&lt;li&gt;Additionally this post assumes pre-requisite knowledge of Rust(nothing too complex), and a basic understanding of computer architecture and embedded systems(although I will try to make this as beginner friendly as possible, linking to helpful resources whereever I can)&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
