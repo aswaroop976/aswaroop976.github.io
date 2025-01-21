@@ -9,12 +9,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://example.org/posts/my-first-post/</loc>
-    <lastmod>2025-01-21T00:25:49-06:00</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://example.org/posts/</loc>
     <lastmod>2025-01-21T00:25:49-06:00</lastmod>
     <changefreq>daily</changefreq>
