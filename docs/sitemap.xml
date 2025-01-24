@@ -3,31 +3,25 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <url>
-    <loc>http://localhost:36645/</loc>
+    <loc>https://example.org/</loc>
     <lastmod>2025-01-21T22:00:56-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:36645/projects/chip8_microcontroller_port/</loc>
+    <loc>https://example.org/projects/chip8_microcontroller_port/</loc>
     <lastmod>2025-01-21T22:00:56-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:36645/projects/</loc>
+    <loc>https://example.org/projects/</loc>
     <lastmod>2025-01-21T22:00:56-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:36645/posts/my-first-post/</loc>
-    <lastmod>2025-01-21T00:25:49-06:00</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>http://localhost:36645/posts/</loc>
+    <loc>https://example.org/posts/</loc>
     <lastmod>2025-01-21T00:25:49-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>

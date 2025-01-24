@@ -2,14 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Arpan Swaroop&#39;s portfolio</title>
-    <link>http://localhost:36645/categories/</link>
+    <link>https://example.org/categories/</link>
     <description>Recent content in Categories on Arpan Swaroop&#39;s portfolio</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <managingEditor>aswar3@illinois.edu (Arpan Swaroop)</managingEditor>
     <webMaster>aswar3@illinois.edu (Arpan Swaroop)</webMaster>
     <copyright>© 2025 Arpan Swaroop</copyright>
-    <atom:link href="http://localhost:36645/categories/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://example.org/categories/index.xml" rel="self" type="application/rss+xml" />
     
   </channel>
 </rss>
