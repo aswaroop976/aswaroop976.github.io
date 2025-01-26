@@ -9,7 +9,17 @@
     <managingEditor>aswar3@illinois.edu (Arpan Swaroop)</managingEditor>
     <webMaster>aswar3@illinois.edu (Arpan Swaroop)</webMaster>
     <copyright>© 2025 Arpan Swaroop</copyright>
-    <lastBuildDate>Tue, 21 Jan 2025 22:00:56 -0600</lastBuildDate><atom:link href="https://example.org/projects/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 26 Jan 2025 15:08:07 -0600</lastBuildDate><atom:link href="https://example.org/projects/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>OOO_processor</title>
+      <link>https://example.org/projects/ooo_processor/</link>
+      <pubDate>Sun, 26 Jan 2025 15:08:07 -0600</pubDate>
+      <author>aswar3@illinois.edu (Arpan Swaroop)</author>
+      <guid>https://example.org/projects/ooo_processor/</guid>
+      <description></description>
+      
+    </item>
     
     <item>
       <title>Chip8_microcontroller_port</title>

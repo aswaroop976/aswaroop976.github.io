@@ -4,18 +4,24 @@
 
   <url>
     <loc>https://example.org/</loc>
-    <lastmod>2025-01-21T22:00:56-06:00</lastmod>
+    <lastmod>2025-01-26T15:08:07-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://example.org/projects/chip8_microcontroller_port/</loc>
-    <lastmod>2025-01-21T22:00:56-06:00</lastmod>
+    <loc>https://example.org/projects/ooo_processor/</loc>
+    <lastmod>2025-01-26T15:08:07-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://example.org/projects/</loc>
+    <lastmod>2025-01-26T15:08:07-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://example.org/projects/chip8_microcontroller_port/</loc>
     <lastmod>2025-01-21T22:00:56-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
