@@ -106,7 +106,7 @@
     
     
     "mainEntityOfPage": "true",
-    "wordCount": "241"
+    "wordCount": "1188"
   }]
   </script>
 
@@ -415,7 +415,7 @@
 <div class="flex flex-row flex-wrap items-center">
   
   
-  <time datetime="2025-01-26T15:08:07-06:00">26 January 2025</time><span class="px-2 text-primary-500">&middot;</span><span>241 words</span><span class="px-2 text-primary-500">&middot;</span><span title="Reading time">2 mins</span>
+  <time datetime="2025-01-26T15:08:07-06:00">26 January 2025</time><span class="px-2 text-primary-500">&middot;</span><span>1188 words</span><span class="px-2 text-primary-500">&middot;</span><span title="Reading time">6 mins</span>
   
 
   
@@ -614,6 +614,75 @@
   <img src="/images/OOO/block_diagram.png" alt="Alt text" style="width: 100%;"/>
   <p><em>Figure 1: ERR block diagram.</em></p>
 </div>
+
+
+<h2 class="relative group">Design description 
+    <div id="design-description" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#design-description" aria-label="Anchor">#</a>
+    </span>        
+    
+</h2>
+
+
+<h3 class="relative group">Overview 
+    <div id="overview" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#overview" aria-label="Anchor">#</a>
+    </span>        
+    
+</h3>
+<p>This project was divided into three key checkpoints to promote consistent processor development. Each checkpoint significantly advanced the processor’s functionality and compatibility with the RISC-V ISA. We incorporated the instruction cache early in the first checkpoint to reduce the design integration overhead. This decision improved our experience implementing the memory instructions, enabling us to focus on writing clear RTL for the other deliverables. The cache line adapter was also written modularly to ensure ease of integrating prefetchers. We assessed the requirements of each checkpoint and planned out the specific aspect of the processor that each would focus on. This preparation allowed for a fair workload distribution and made us think about integration early on. Finally, the most notable cause for our success was creating a well-defined block diagram and datapath for the processor and specifying the significance of each module and its place in the puzzle.</p>
+
+
+<h3 class="relative group">Milestones 
+    <div id="milestones" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#milestones" aria-label="Anchor">#</a>
+    </span>        
+    
+</h3>
+
+
+<h4 class="relative group">Checkpoint 1 
+    <div id="checkpoint-1" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#checkpoint-1" aria-label="Anchor">#</a>
+    </span>        
+    
+</h4>
+<p>The objectives of this checkpoint were to create a high-level microarchitecture diagram of the processor, shown in Figure 1, implement a parameterizable queue for internal instruction buffering, develop a cache-line adapter to handle DRAM bursts and integrate the fetch stage with a DRAM model.
+Specifically, our queue was circular with head and tail pointers that had one extra bit to signify what lap each pointer was on. Our cache-line adapter had stages in which we handled different aspects of the burst memory, such as initiating the memory request, each stage of the burst, and when the request was finished. Our high-level block diagram described our overall design of the ERR architecture and how each of the components would interact with each other.
+To test the developed RTL components, we utilized DUT testing on both the individual modules and the entire system once integrated. For instance, we tested the FIFO edge cases of enqueuing when full or dequeuing when empty before integrating the queue with the fetch stage. We also ensured the expected behavior was maintained when the queue wrapped around. Then, once integrated, we included more than 16 instructions(our instruction queue size is 16) to test the functionality thoroughly. To test the cache line adapter&rsquo;s compatibility with the DRAM burst memory, we opened the simulated waveform and verified that each burst was handled correctly within the Mealy machine. Once this was done, we tested it on an assembly file and ensured all the correct instructions were formatted into the instruction queue. The outcome of this checkpoint was establishing a functional fetch stage and integrating it with DRAM memory and an instruction cache.</p>
+
+
+<h4 class="relative group">Checkpoint 2 
+    <div id="checkpoint-2" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#checkpoint-2" aria-label="Anchor">#</a>
+    </span>        
+    
+</h4>
+<p>For checkpoint 2, we had to implement all RV32I immediately and register instructions, excluding any control or memory instructions. We also had to integrate the multiplier and divider Synopsys IPs to implement the RISC-V M extension. This was the checkpoint where we had to design and implement most components in an explicit register renaming architecture. Checkpoint 1 was where we made the fetch stage; here, we made the components to implement the decode, execute, and write-back stages.
+In the decode stage, the first component is renamed dispatch. This is where we dispatch the instruction to the appropriate reservation station and the ROB queue. Additionally, rename dispatch is also where we dequeue a free register(for the destination register) from the free list and then update the register alias table(RAT) accordingly. Sitting in between decode and execution lies our reservation station. This is where we hold instructions until all the operands are ready for execution. For every functional unit, we chose to have a separate set of reservation stations; this just made it more streamlined for us to handle issuing instructions to the functional unit for execution.
+For our execute stage, we have our functional units; for this checkpoint, we included ALU/CMP, multiplication, and division functional units. We integrated given Synopsys multiplication and division IPs for our mul/div functional units. We chose sequential IPs to minimize our critical path and optimize our frequency. After executing the functional units, we have to broadcast the result on the central data bus(CDB) to the reservation stations, physical register file, return order buffer(ROB), and RAT. An important design choice we made was to have a separate CDB for each functional unit; this ensured that we could immediately broadcast the result as soon as it was ready, effectively minimizing wakeup latency. This was a tradeoff for a higher area, as each CDB is expensive area-wise because of the large amount of read/write ports that need to be synthesized.
+Finally, we reach the last part of the pipeline, the write-back stage; in this stage, we have the ROB and the retirement register alias table(RRAT). Our ROB is a first-in-first-out queue, which ensures that we commit instructions in the correct order; this is integral since we execute instructions out of order. The RRAT stores the last non-speculative architectural state of the processor and is updated whenever the ROB commits an instruction. Every instruction processed in our processor is speculative until the ROB commits it. So, it is important to store the last non-speculative state(this will be important when we implement control instructions). Moreover, once the RRAT receives an update, we enqueue the old register that was mapped back into the free list.<br>
+For testing, we utilized given assembly test cases, wrote our own test cases, and had a random testbench, which tested all the instructions that our processor was required to process. Our random testbench excluded all control and memory instructions. Using random testing, we were able to find and fix many bugs in how we processed certain instructions. For example, we had to deal with the divide by zero exception in our division IP.</p>
 
           
           
