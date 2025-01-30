@@ -106,7 +106,7 @@
     
     
     "mainEntityOfPage": "true",
-    "wordCount": "1188"
+    "wordCount": "2732"
   }]
   </script>
 
@@ -415,7 +415,7 @@
 <div class="flex flex-row flex-wrap items-center">
   
   
-  <time datetime="2025-01-26T15:08:07-06:00">26 January 2025</time><span class="px-2 text-primary-500">&middot;</span><span>1188 words</span><span class="px-2 text-primary-500">&middot;</span><span title="Reading time">6 mins</span>
+  <time datetime="2025-01-26T15:08:07-06:00">26 January 2025</time><span class="px-2 text-primary-500">&middot;</span><span>2732 words</span><span class="px-2 text-primary-500">&middot;</span><span title="Reading time">13 mins</span>
   
 
   
@@ -683,6 +683,237 @@ In the decode stage, the first component is renamed dispatch. This is where we d
 For our execute stage, we have our functional units; for this checkpoint, we included ALU/CMP, multiplication, and division functional units. We integrated given Synopsys multiplication and division IPs for our mul/div functional units. We chose sequential IPs to minimize our critical path and optimize our frequency. After executing the functional units, we have to broadcast the result on the central data bus(CDB) to the reservation stations, physical register file, return order buffer(ROB), and RAT. An important design choice we made was to have a separate CDB for each functional unit; this ensured that we could immediately broadcast the result as soon as it was ready, effectively minimizing wakeup latency. This was a tradeoff for a higher area, as each CDB is expensive area-wise because of the large amount of read/write ports that need to be synthesized.
 Finally, we reach the last part of the pipeline, the write-back stage; in this stage, we have the ROB and the retirement register alias table(RRAT). Our ROB is a first-in-first-out queue, which ensures that we commit instructions in the correct order; this is integral since we execute instructions out of order. The RRAT stores the last non-speculative architectural state of the processor and is updated whenever the ROB commits an instruction. Every instruction processed in our processor is speculative until the ROB commits it. So, it is important to store the last non-speculative state(this will be important when we implement control instructions). Moreover, once the RRAT receives an update, we enqueue the old register that was mapped back into the free list.<br>
 For testing, we utilized given assembly test cases, wrote our own test cases, and had a random testbench, which tested all the instructions that our processor was required to process. Our random testbench excluded all control and memory instructions. Using random testing, we were able to find and fix many bugs in how we processed certain instructions. For example, we had to deal with the divide by zero exception in our division IP.</p>
+
+
+<h4 class="relative group">Checkpoint 3 
+    <div id="checkpoint-3" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#checkpoint-3" aria-label="Anchor">#</a>
+    </span>        
+    
+</h4>
+<p>For checkpoint 3 we had to implement all of the control and memory instructions. This meant adding the load store queue module, the control functional unit, and the load store functional unit. We also had to make additions to the modules previously implemented such as adding control and memory stations to the reservation station and implementing flushing logic for mispredicted control instructions.
+Specifically for the load store queue, we made a FIFO where we enqueued into it from rename dispatch if the specific instruction was either a load or a store. The same instruction would then go through the reservation stations and load store functional unit to compute the address to load from or store to. This address would then be sent to the load store queue to update the index of the queue with the specific instruction’s memory address. If the head of the queue was a store, the address was ready, and it was at the top of the ROB, then we could proceed and execute it. If the head of the queue was a load and the address was ready we could proceed and execute it.
+The load store functional unit calculated the address from which to load from or store to using basic arithmetic operations. The control functional unit similarly calculated the address to branch/jump to as well as whether the branch should take place. This data was stored into the ROB and once the instruction became the head of the ROB, the branch/jump was taken if valid and the processor would flush all speculative values since we were statically predicting it to not be taken.
+to test for this checkpoint we used both the given test cases like coremark_im as well as our own targeted C and assembly files as test cases for individual components. We also modified our random testbench to include the new control and memory instructions. With the random tb along with the provided test cases passing, we were confident in our processors correctness.</p>
+
+
+<h3 class="relative group">Advanced Design Features 
+    <div id="advanced-design-features" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#advanced-design-features" aria-label="Anchor">#</a>
+    </span>        
+    
+</h3>
+
+
+<h4 class="relative group">Next-line prefetcher(Instrution cache) 
+    <div id="next-line-prefetcherinstrution-cache" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#next-line-prefetcherinstrution-cache" aria-label="Anchor">#</a>
+    </span>        
+    
+</h4>
+<ul>
+<li>Design: The Next-Line Prefetcher sits between the fetch module and instruction cache. If the instruction queue is not full, the fetch module will request the next PC address. The prefetcher will intercept this request, and calculate a prefetch address (current PC + 32’h20) if it deems that a prefetch is necessary. It will then send the original request to the instruction cache. When it gets a response, it will send a request for the prefetched address, and hold the mem_r_data until the prefetch responds. Once this happens, the NL will send the mem_r_data from the original response to the fetch module.</li>
+<li>Testing: This was tested as a DUT first to make sure that the expected behavior occurs, and the stride increments correctly. Then, I tested this on coremark_im, but the stride value always increased to very large values, making it not beneficial to integrate into the final submission</li>
+<li>Performance Analysis:
+<ul>
+<li>The Area increase with this advanced feature is 670.8184. The AMAT increases significantly from 31.086 to 38.58 on coremark_im after integrating this with the baseline, causing the IPC to decrease quite considerably from 0.3558 to 0.2927. This is likely due to a poor accuracy of only 34%, but we tried using different base stride values than 20 but it did not seem to help. It would likely have performed better if it was directly integrated into the cacheline adapter, but even then the accuracy would have been off, so perhaps the method of updating the stride did not work. The performance counters were done in the same way as the NL prefetcher.  It was not integrated into main because of the very poor performance,
+<table>
+  <thead>
+      <tr>
+          <th>Metric</th>
+          <th>Value</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Area Increase:</td>
+          <td>670.8184</td>
+      </tr>
+      <tr>
+          <td></td>
+          <td>coremark_im</td>
+      </tr>
+      <tr>
+          <td>Stride AMAT</td>
+          <td>38.5817820</td>
+      </tr>
+      <tr>
+          <td>Stride IPC</td>
+          <td>0.292752</td>
+      </tr>
+      <tr>
+          <td>no Stride AMAT</td>
+          <td>31.0864897</td>
+      </tr>
+      <tr>
+          <td>no Stride IPC</td>
+          <td>0.355823</td>
+      </tr>
+      <tr>
+          <td>Stride PF Accuracy:</td>
+          <td>34.331%</td>
+      </tr>
+  </tbody>
+</table>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h4 class="relative group">G-share branch predictor with BTB 
+    <div id="g-share-branch-predictor-with-btb" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#g-share-branch-predictor-with-btb" aria-label="Anchor">#</a>
+    </span>        
+    
+</h4>
+<ul>
+<li>
+<p>Overall design: Our branch prediction scheme involved a G-share branch predictor along with a BTB. We implemented both the branch predictor and the BTB in the fetch stage where we pass in the pc, and get the speculative branch prediction and branch target in the next clock cycle. We only speculatively take a branch if we both get a branch taken prediction from G-share, and a BTB hit. This is to ensure that whenever we speculatively branch we have a branch target to branch to</p>
+</li>
+<li>
+<p>BTB design: Our BTB is implemented using SRAM, where we had a 16 entry, direct mapped BTB. Each entry is indexed using the bottom 4 bits of the pc, and each entry is tagged with the top 28 bits of the pc of a valid control instruction. Additionally, each entry also stores a 32 bit branch target address. Whenever we get a BTB hit, we can be sure that the pc we used to index the BTB corresponds to a control instruction. We update the BTB whenever we mispredicted the branch target, or whenever we were supposed to non-speculatively branch and didn’t speculatively branch. The BTB works well with code that has branches that we take repeatedly like for loops. Tradeoffs with this design primarily include more area(primarily SRAM), and added critical path, because we input every PC we get from fetch into the BTB.</p>
+</li>
+<li>
+<p>G-share design: Our G-share uses a pattern history table implemented using SRAM, where we had 256 entries, each entry storing a 2-bit saturated counter. to index into this table we XOR the bottom 8 bits of the pc with the global history register(GHR). The GHR stores the outcomes of the last 8 non-speculative branches(1 for branch taken, 0 for branch not taken). Using the GHR we can take into account the global branch history of the program to index into the pattern history table. We update the pattern history table whenever we commit a control instruction, since two bit saturated counters need to be updated based on the outcome of the branch. to do this we store the pattern history table index in the rob queue entries for control instructions, so that we can update the pattern history table efficiently. The G-share branch predictor can be very accurate if the recent history of branch predictions determines the current branch prediction(such as nested if statements). Tradeoffs with this design include more area(primarily SRAM for pattern history table), and added critical path because we input every PC we get from fetch into the branch predictor.</p>
+</li>
+<li>
+<p>Testing: to test the BTB, I wrote a C file with nested for loops to test lots of repeated branches. to test G-share I wrote a simple Design Under Test test case, and tested it against the same nested for loop C file. I also made an assembly file to test all sorts of branch instructions, and to check various branching conditions.</p>
+</li>
+<li>
+<p>Performance Analysis: Below I have compiled some performance metrics for the provided test cases. I also provide an explanation for each metric:</p>
+<ul>
+<li>G-share accuracy: (number of correct g-share predictions)/(number of control instructions committed). This metric represents how accurate the branch predictor’s predictions were in isolation(disregarding BTB hits). I calculated this by storing the G-share prediction for each control instruction in the rob queue entries, and checked if the prediction was correct at time of committing.</li>
+<li>Speculative branch prediction accuracy: (number of correctly speculated branches)/(number of control instructions committed). This is the most important statistic, where I measure how many correct speculative branches we take.</li>
+<li>BTB hit rate: (number of BTB hits)/(number of control instructions committed). This is represents how often we get a BTB hit
+<table>
+  <thead>
+      <tr>
+          <th>Metric</th>
+          <th>Coremark</th>
+          <th>Mergesort</th>
+          <th>FFT</th>
+          <th>AES SHA</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>G-share accuracy</td>
+          <td>87.82%</td>
+          <td>77.38%</td>
+          <td>99.04%</td>
+          <td>95.72%</td>
+      </tr>
+      <tr>
+          <td>Speculative branch prediction accuracy</td>
+          <td>77.55%</td>
+          <td>68.14%</td>
+          <td>64.76%</td>
+          <td>18.74%</td>
+      </tr>
+      <tr>
+          <td>BTB hit rate</td>
+          <td>49.93%</td>
+          <td>44.49%</td>
+          <td>78.26%</td>
+          <td>27.09%</td>
+      </tr>
+  </tbody>
+</table>
+</li>
+</ul>
+<p align="center"><em>Branch predictor metrics</em></p>
+<ul>
+<li>Below I also show performance speed up from incorporating BTB + G-share(IPC speedup and program delay speedup)
+<table>
+  <thead>
+      <tr>
+          <th>Benchmark</th>
+          <th>IPC (Base Design)</th>
+          <th>Delay (Microseconds, Base Design)</th>
+          <th>IPC (BTB + G-Share)</th>
+          <th>Delay (Microseconds, BTB + G-Share)</th>
+          <th>IPC Speedup</th>
+          <th>Delay Decrease</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Coremark</td>
+          <td>0.2528</td>
+          <td>1845.12</td>
+          <td>0.3601</td>
+          <td>1287.49</td>
+          <td>42.44% speedup</td>
+          <td>30.22% decrease</td>
+      </tr>
+      <tr>
+          <td>Mergesort</td>
+          <td>0.3269</td>
+          <td>2284.56</td>
+          <td>0.3905</td>
+          <td>1900.96</td>
+          <td>19.46% speedup</td>
+          <td>16.79% decrease</td>
+      </tr>
+      <tr>
+          <td>FFT</td>
+          <td>0.3173</td>
+          <td>2594.53</td>
+          <td>0.373</td>
+          <td>2192.96</td>
+          <td>17.55% speedup</td>
+          <td>15.48% decrease</td>
+      </tr>
+      <tr>
+          <td>AES SHA</td>
+          <td>0.2618</td>
+          <td>3990.69</td>
+          <td>0.273</td>
+          <td>3803.17</td>
+          <td>4.28% speedup</td>
+          <td>4.70% decrease</td>
+      </tr>
+  </tbody>
+</table>
+</li>
+</ul>
+</li>
+</ul>
+<p align="center"><em>Performance Metrics for Base Design and BTB + G-Share Integrated</em></p>
+<div style="text-align: center;">
+  <img src="/images/OOO/chart.png" alt="Alt text" style="width: 100%;"/>
+  <p><em>Performance improvement chart</em></p>
+</div>
+
+
+<h2 class="relative group">Conclusion 
+    <div id="conclusion" class="anchor"></div>
+    
+    <span
+        class="absolute top-0 w-6 transition-opacity opacity-0 ltr:-left-6 rtl:-right-6 not-prose group-hover:opacity-100">
+        <a class="group-hover:text-primary-300 dark:group-hover:text-neutral-700"
+            style="text-decoration-line: none !important;" href="#conclusion" aria-label="Anchor">#</a>
+    </span>        
+    
+</h2>
+<p>In this project we were tasked with creating an Out-of-Order processor tailored for the RISC-V 32IM ISA. We were assigned this to gain a deep understanding of advanced computer architecture concepts, and as a design challenge to design the most performant and efficient microprocessor. As discussed earlier, Out-of-Order microarchitectures are ubiquitous with modern day processors, and throughout this project we sought to emulate and improve on designs taught to us in class. I believe we were successful in this endeavor choosing to go with an ERR architecture, and the integration of several advanced features such as a nextline/stride prefetcher, G-share branch predictor, branch target buffer, and a split load store queue. Throughout this we also learned a lot to improve upon in future designs, such as incorporating performance testing earlier on to find bottlenecks earlier on and making each component more modular to make integration more streamlined. Overall this project will serve as valuable experience setting us up for success in our future careers in computer architecture.</p>
 
           
           
